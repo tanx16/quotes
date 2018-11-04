@@ -6,17 +6,11 @@ import sys
 import os.path
 import random
 import datetime
+import json
 from collections import defaultdict
 
-class Quote:
-    def __init__(self, quote):
-        self.quote = quote
-        self.time = datetime.datetime.now()
-    def __str__(self):
-        return '\"{}\" ({})'.format(self.quote, self.time.strftime("%Y-%m-%d %H:%M"))
-
 def print_quote(user, quote):
-    print('{}: {}'.format(user, quote))
+    print('{}: {} ({})'.format(user, quote['quote'], quote['time']))
 
 def display_quote(args, quotedict):
     user = args.user
@@ -41,7 +35,8 @@ def display_quote(args, quotedict):
 def add_quote(args, quotedict):
     user = args.user
     quote = args.quote
-    quotedict[user].append(Quote(quote))
+    quote = {'quote': quote, 'time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}
+    quotedict[user].append(quote)
     print_quote(user, quote)
 
 def search_quote(args, quotedict):
@@ -53,7 +48,7 @@ def search_quote(args, quotedict):
         if ans.strip() != 'y' and ans.strip() != 'yes':
             return
     if user:
-        matches = [quote for quote in quotedict[user] if phrase in quote.quote]
+        matches = [quote for quote in quotedict[user] if phrase in quote['quote']]
         for match in matches:
             print_quote(user, match)
             if delete:
@@ -61,7 +56,7 @@ def search_quote(args, quotedict):
     else:
         all_quotes = quotedict.values()
         for user, quotes in quotedict.items():
-            matches = [quote for quote in quotes if phrase in quote.quote]
+            matches = [quote for quote in quotes if phrase in quote['quote']]
             for match in matches:
                 print_quote(user, match)
                 if delete:
@@ -109,17 +104,17 @@ def main(argv=None):
     args = parser.parse_args()
     # Check if quotes file exists, if not then make new
     if os.path.exists(filename):
-        quotefile = open(filename,'rb')
-        quotedict = pickle.load(quotefile)
-        quotefile.close()
+        with open(filename) as quotefile:
+            quotedict = json.load(quotefile)
+            quotedict = defaultdict(list, quotedict)
     else:
         quotedict = defaultdict(list)
 
     args.func(args, quotedict)
 
     # Pickle and finish
-    with open(filename, "wb") as f:
-        pickle.dump(quotedict,f)
+    with open(filename, "w") as f:
+        json.dump(quotedict,f)
     return
 
 if __name__ == '__main__':
