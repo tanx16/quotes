@@ -15,6 +15,9 @@ def print_quote(user, quote):
 def display_quote(args, quotedict):
     user = args.user
     rand = args.random
+    if not quotedict:
+        print("No quotes found.")
+        return
     # Display random quote for user
     if rand:
         if not user:
@@ -43,13 +46,16 @@ def search_quote(args, quotedict):
     phrase = args.phrase
     user = args.user
     delete = args.delete
+    found = False
     if delete:
         ans = input("Are you sure you want to delete all matching entries?\n")
         if ans.strip() != 'y' and ans.strip() != 'yes':
+            print("Action aborted.")
             return
     if user:
         matches = [quote for quote in quotedict[user] if phrase in quote['quote']]
         for match in matches:
+            found = True
             print_quote(user, match)
             if delete:
                 quotedict[user].remove(match)
@@ -58,9 +64,12 @@ def search_quote(args, quotedict):
         for user, quotes in quotedict.items():
             matches = [quote for quote in quotes if phrase in quote['quote']]
             for match in matches:
+                found = True
                 print_quote(user, match)
                 if delete:
                     quotedict[user].remove(match)
+    if not found:
+        print("No matches found.")
 
 def merge_users(args, quotedict):
     names = args.names
@@ -112,7 +121,7 @@ def main(argv=None):
 
     args.func(args, quotedict)
 
-    # Pickle and finish
+    # Write and finish
     with open(filename, "w") as f:
         json.dump(quotedict,f)
     return
