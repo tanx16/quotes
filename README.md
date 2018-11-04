@@ -8,11 +8,14 @@ Run `uninstall.sh` to uninstall `quotes`.
 
 ## Usage
 `quotes display --user [name] --random`
+
 `quotes add [user] [quote]`
+
 `quotes search [phrase] --user [name] --delete`
 
 ## Recent changes
 Added timestamps for quotes and deletion.
+
 Added install/uninstall script.
 
 ## Todo
