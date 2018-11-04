@@ -67,6 +67,16 @@ def search_quote(args, quotedict):
                 if delete:
                     quotedict[user].remove(match)
 
+def merge_users(args, quotedict):
+    names = args.names
+    if len(names) < 2:
+        return
+    merge_into, merge_from = names[0], names[1:]
+    for name in merge_from:
+        print("Merged and deleted {}".format(name))
+        for quotes in quotedict[name]:
+            quotedict[merge_into].append(quotes)
+        del quotedict[name]
 
 def main(argv=None):
     # Check os and set install location (Windows not supported)
@@ -89,9 +99,13 @@ def main(argv=None):
     parser_search.add_argument('--user', help='limit search to user')
     parser_search.add_argument('--delete', action='store_true', help='limit search to user')
 
+    parser_merge = subparsers.add_parser('merge', help='merge names')
+    parser_merge.add_argument('names', nargs='+', help='merge quotes for multiple names into the first specified name')
+
     parser_display.set_defaults(func=display_quote)
     parser_add.set_defaults(func=add_quote)
     parser_search.set_defaults(func=search_quote)
+    parser_merge.set_defaults(func=merge_users)
     args = parser.parse_args()
     # Check if quotes file exists, if not then make new
     if os.path.exists(filename):
