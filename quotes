@@ -82,6 +82,28 @@ def merge_users(args, quotedict):
             quotedict[merge_into].append(quotes)
         del quotedict[name]
 
+def import_file(args, quotedict):
+    files = args.files
+    for f in files:
+        # Should test on directories
+        # Needs error handling for bad files
+        if os.path.exists(f):
+            with open(f) as importfile:
+                importdict = json.load(importfile)
+                importdict = defaultdict(list, importdict)
+            for user, quotes in importdict:
+                quotedict[user] += quotes # This works for new users because it's a defaultdict
+            print("Imported users and quotes from {}".format(f))
+        else:
+            print("{} not found.".format(f))
+    print("Importing completed.")
+
+def export_file(args, quotedict):
+    # Consider copying the quotedict directly?
+    filename = args.name if args.name else "quoteexport"
+    with open(filename, "w") as f:
+        json.dump(quotedict,f)
+
 def main(argv=None):
     # Check os and set install location (Windows not supported)
     filename = "/var/lib/quotes/quotesdict"
@@ -106,10 +128,18 @@ def main(argv=None):
     parser_merge = subparsers.add_parser('merge', help='merge names')
     parser_merge.add_argument('names', nargs='+', help='merge quotes for multiple names into the first specified name')
 
+    parser_import = subparsers.add_parser('import', help='add quotes from import file')
+    parser_import.add_argument('file', nargs='+', help='choose files(s) to import quotes and names from')
+
+    parser_export = subparsers.add_parser('export', help='export quotes to a new file')
+    parser_export.add_argument('--name', help='set the name of the file')
+
     parser_display.set_defaults(func=display_quote)
     parser_add.set_defaults(func=add_quote)
     parser_search.set_defaults(func=search_quote)
     parser_merge.set_defaults(func=merge_users)
+    parser_import.set_defaults(func=import_file)
+    parser_export.set_defaults(func=export_file)
     args = parser.parse_args()
     # Check if quotes file exists, if not then make new
     if os.path.exists(filename):
